@@ -46,10 +46,118 @@ module Sudoku
 			@grid[row*9 + col] = newvalue
 		end
 		
+		BoxOfIndex = [0,0,0,1,1,1,2,2,2,0,0,0,1,1,1,2,2,2,0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,3,3,3,4,4,4,5,5,5,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,6,6,6,7,7,7,8,8,8,6,6,6,7,7,7,8,8,8].freeze #this is the gameboard, it is frozen so it can't be modified, and since the first letter of the name is capitol it is a constant
 		
+		def each_unknown#loop through the grid and if we don't know the value already for the cell, then figure it out
+			0.upto 8 do |row|
+				0.upto 8 do |col|
+					index = row*9+col
+					next if @grid[index] != 0
+					box = BoxOfIndex[index]
+					yield row, col, box
+				end
+			end
+		end
 		
+		def has_duplicates?
+			0.upto(8) {|row| return true if rowdigits(row).uniq! }
+			0.upto(8) {|col| return true if coldigits(col).uniq! }
+			0.upto(8) {|box| return true if boxdigits(box).uniq! }
+			false #otherwise, returns false
+		end
+		
+		#an array of ok sudoku digits
+		AllDigits = [1,2,3,4,5,6,7,8,9].freeze
+		
+		def possible(row, col, box)
+			#returns the possible digits for the cell
+			AllDigits - (rowdigits(row) + coldigits(col) + boxdigits(box))
+		end
+		
+		private #all methods under here are private to the class
+		
+		def rowdigits(row) #returns an array of the known values in the row
+			@grid[row*9,9] - [0]
+		end
+		
+		def coldigits(col) #same thing but with columns
+			result = [] #start with empty array
+			col.step(80, 9) {|i| #loop through columns
+				v = @grid[i]  #get value of the cell
+				result << v if (v !0 0)  #add it to the array if it isn't zero
+			}
+			result
+		end
+		
+		#a list of the top right corners of all the boxes
+		BoxToIndex = [0,3,6,27,30,33,54,57,60].freeze
+		
+		#return a list of known digits in a box
+		def boxdigits(b)
+			i = BoxToIndex[b]
+			#now return an array of values with the 0 elements removed
+			[
+				@grid[i], @grid[i+1], @grid[i+2],
+				@grid[i+9], @grid[i+10], @grid[i+11],
+				@grid[i+18], @grid[i+19], @grid[i+20]
+			] - [0]
+		end
+	end#thus, the puzzle class ends
+	
+	#an exception class, incorrect input
+	class Invalid < StandardError
+	end
+	
+	#an exception class, over-constrained puzzle/not solvable
+	class Impossible < StandardError
+	end
+	
+	#goes through the puzzle setting values until it can't set values
+	def Sudoku.scan(puzzle)
+		unchanged = false #looping variable
+		
+		until unchanged
+			unchanged = true
+			rmin,cmin,pmin = nil
+			min = 10
+			puzzle.each_unknown do |row, col, box|
+				p = puzzle.possible(row,col,box)
+				case p.size
+				when 0 #no possible values, overconstrained puzzle
+					raise Impossible
+				when 1 #only one value, it must be correct so set it in the puzzle
+					puzzle[row,col] = p[0]
+					unchanged = false
+				else
+					if unchanged && p.size < min
+						min = p.size
+						rmin, cmin, pmin = row, col, p
+					end
+				end
+			end
+		end
+		return rmin, cmin, pmin
+	end
+	
+	#now a method that solves the puzzle
+	def Sudou.solve(puzzle)
+		puzzle = puzzle.dup #this way we don't mess with the original
+		r,c,p = scan(puzzle)
+		
+		return puzzle if r == nil
+		
+		p.each do |guess| #loop through the guesses for each empty cell
+			puzzle[r,c] = guess
+			
+			begin #now we try to recursively solve the modified puzzle
+				return solve(puzzle)
+			rescue Impossible
+				next
+			end
+		end
+		
+		#if we get this far, we messed up somewhere
+		raise Impossible
 	end
 	
 end
-
-puts Sudoku::Puzzle.new("6	2	2	7	5	7	4	4	3	1	5	9	3	1	3	9	5	4	8	7	1	2	6	8	4	1	7	7	5	7	3	8	6	3	1	6	5	5	4	7	8	4	6	3	4	3	3	6	2	9	2	7	3	1	1	4	9	7	2	3	5	7	1	4	2	2	9	2	7	3	6	5	6	8	2	8	6	4	8	3	4")
