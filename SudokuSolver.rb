@@ -4,7 +4,7 @@ module Sudoku
 		
 		ASCII = ".123456789"
 		BIN = "/000/001/002/003/004/005/006/007/010/011"
-		
+		#Blurf
 		def initialize(lines)
 			#The if else initializes s as a string, whether it started as a string array or just a string
 			if lines.respond_to? :join #basically, if it has a join method, it is probably an array
