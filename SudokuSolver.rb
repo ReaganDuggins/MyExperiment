@@ -1,7 +1,7 @@
 module Sudoku
 
 	class Puzzle
-		
+
 		ASCII = ".123456789"
 		BIN = "/000/001/002/003/004/005/006/007/010/011"
 
@@ -20,34 +20,34 @@ module Sudoku
 			end
 			s.tr!(ASCII, BIN) #Translates ascii into bytess
 			@grid = s.unpack('c*') #"unpacks" bytes into an array of numbers
-			
+
 			#raise Invalid, "Initial puzzle has duplicates" if has_duplicates?
-			
+
 		end
-		
+
 		def to_s
 			(0..8).collect{|r| @grid[r*9,9].pack('c9')}.join("\n").tr(BIN,ASCII)
 		end
-		
+
 		def dup
 			copy = super
 			@grid = @grid.dup
 			copy
 		end
-		
+
 		def [](row,col)
 			@grid[row*9 + col]
 		end
-		
+
 		def []=(row,col,newvalue)
 			unless (0..9).include? newvalue
 				raise Invalid, "illegal cell value"
 			end
 			@grid[row*9 + col] = newvalue
 		end
-		
+
 		BoxOfIndex = [0,0,0,1,1,1,2,2,2,0,0,0,1,1,1,2,2,2,0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,3,3,3,4,4,4,5,5,5,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,6,6,6,7,7,7,8,8,8,6,6,6,7,7,7,8,8,8].freeze #this is the gameboard, it is frozen so it can't be modified, and since the first letter of the name is capitol it is a constant
-		
+
 		def each_unknown#loop through the grid and if we don't know the value already for the cell, then figure it out
 			0.upto 8 do |row|
 				0.upto 8 do |col|
@@ -58,40 +58,40 @@ module Sudoku
 				end
 			end
 		end
-		
+
 		def has_duplicates?
 			0.upto(8) {|row| return true if rowdigits(row).uniq! }
 			0.upto(8) {|col| return true if coldigits(col).uniq! }
 			0.upto(8) {|box| return true if boxdigits(box).uniq! }
 			false #otherwise, returns false
 		end
-		
+
 		#an array of ok sudoku digits
 		AllDigits = [1,2,3,4,5,6,7,8,9].freeze
-		
+
 		def possible(row, col, box)
 			#returns the possible digits for the cell
 			AllDigits - (rowdigits(row) + coldigits(col) + boxdigits(box))
 		end
-		
+
 		private #all methods under here are private to the class
-		
+
 		def rowdigits(row) #returns an array of the known values in the row
 			@grid[row*9,9] - [0]
 		end
-		
+
 		def coldigits(col) #same thing but with columns
 			result = [] #start with empty array
 			col.step(80, 9) {|i| #loop through columns
 				v = @grid[i]  #get value of the cell
-				result << v if (v !0 0)  #add it to the array if it isn't zero
+				result << v if (v != 0)  #add it to the array if it isn't zero
 			}
 			result
 		end
-		
+
 		#a list of the top right corners of all the boxes
 		BoxToIndex = [0,3,6,27,30,33,54,57,60].freeze
-		
+
 		#return a list of known digits in a box
 		def boxdigits(b)
 			i = BoxToIndex[b]
@@ -103,19 +103,19 @@ module Sudoku
 			] - [0]
 		end
 	end#thus, the puzzle class ends
-	
+
 	#an exception class, incorrect input
 	class Invalid < StandardError
 	end
-	
+
 	#an exception class, over-constrained puzzle/not solvable
 	class Impossible < StandardError
 	end
-	
+
 	#goes through the puzzle setting values until it can't set values
 	def Sudoku.scan(puzzle)
 		unchanged = false #looping variable
-		
+
 		until unchanged
 			unchanged = true
 			rmin,cmin,pmin = nil
@@ -138,26 +138,26 @@ module Sudoku
 		end
 		return rmin, cmin, pmin
 	end
-	
+
 	#now a method that solves the puzzle
-	def Sudou.solve(puzzle)
+	def Sudoku.solve(puzzle)
 		puzzle = puzzle.dup #this way we don't mess with the original
 		r,c,p = scan(puzzle)
-		
+
 		return puzzle if r == nil
-		
+
 		p.each do |guess| #loop through the guesses for each empty cell
 			puzzle[r,c] = guess
-			
+
 			begin #now we try to recursively solve the modified puzzle
 				return solve(puzzle)
 			rescue Impossible
 				next
 			end
 		end
-		
+
 		#if we get this far, we messed up somewhere
 		raise Impossible
 	end
-	
+
 end
