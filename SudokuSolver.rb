@@ -1,3 +1,7 @@
+#This program reads a sudoku board from a file inputted upon running the program, and solves the puzzle.
+#The input file needs to contain 81 digits, known values are digits between 1 and 9 inclusive, and unknown values are represented by . Whitespace is
+#trimmed automatically
+
 module Sudoku
 
 	class Puzzle
@@ -11,6 +15,7 @@ module Sudoku
 				s = lines.join #so join it into one string
 			else
 				s = lines.dup #otherwise, just save lines as s
+				
 			end
 			s.gsub!(/\s/, "") #replace all whitespace with empty string
 			#Make sure input is good
@@ -18,12 +23,13 @@ module Sudoku
 			if i = s.index(/[^123456789\.]/)
 				raise Invalid, "Illegal character #{s[i,1]} in puzzle"
 			end
-			
+			#this loop fills @grid with the numbers
 			@grid = Array.new
 			s.each_char do |c|
-			@grid.push(c)
-			
+				@grid.push(c)
 			end
+			#If the has_duplicates? method worked, this would not be commented
+			#raise Invalid, "Initial puzzle has duplicates" if has_duplicates?
 		end
 
 		def to_s
@@ -75,9 +81,10 @@ module Sudoku
 		end
 
 		def has_duplicates?
-			0.upto(8) {|row| return true if rowdigits(row).uniq! }
-			0.upto(8) {|col| return true if coldigits(col).uniq! }
-			0.upto(8) {|box| return true if boxdigits(box).uniq! }
+			#this method doesn't currently seem to work
+			0.upto(8) {|row| return true if rowdigits(row).uniq }
+			0.upto(8) {|col| return true if coldigits(col).uniq }
+			0.upto(8) {|box| return true if boxdigits(box).uniq }
 			false #otherwise, returns false
 		end
 
@@ -174,8 +181,9 @@ module Sudoku
 		#if we get this far, we messed up somewhere
 		raise Impossible
 	end
-	puts "Input filename or classpath:"
-	input_file = File.open(gets)
-	
-	puts Sudoku.solve(Puzzle.new(".3..52...2..7..63..9...3.1.3458.9....7..1..8....3.4795.6.2...5..83..6..4...14..6."))
+	puts "Input filename or classpath: "
+	in_file = gets.chomp
+	file = File.new(in_file, "r")
+	nums = file.readlines.join.chomp
+	puts Sudoku.solve(Puzzle.new(nums))
 end
