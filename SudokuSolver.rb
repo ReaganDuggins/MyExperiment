@@ -181,7 +181,8 @@ module Sudoku
 		#if we get this far, we messed up somewhere
 		raise Impossible
 	end
-	puts "Input filename or classpath: "
+	in_file = ""
+	puts "Input filename: "
 	in_file = gets.chomp
 	file = File.new(in_file, "r")
 	nums = file.readlines.join.chomp
