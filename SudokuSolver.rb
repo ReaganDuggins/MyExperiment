@@ -18,15 +18,30 @@ module Sudoku
 			if i = s.index(/[^123456789\.]/)
 				raise Invalid, "Illegal character #{s[i,1]} in puzzle"
 			end
-			s.tr!(ASCII, BIN) #Translates ascii into bytess
-			@grid = s.unpack('c*') #"unpacks" bytes into an array of numbers
-
-			#raise Invalid, "Initial puzzle has duplicates" if has_duplicates?
-
+			
+			@grid = Array.new
+			s.each_char do |c|
+			@grid.push(c)
+			
+			end
 		end
 
 		def to_s
-			(0..8).collect{|r| @grid[r*9,9].pack('c9')}.join("\n").tr(BIN,ASCII)
+		#print and format the grid
+			s = ""
+			(0..80).each do |i|
+				if i % 3 == 0 then
+					s = s + " "
+				end
+				if i % 9 == 0
+					s = s +"\n"
+				end
+				if i % 27 == 0
+					s = s +"\n"
+				end
+				s = s + @grid[i].to_s
+			end
+			s
 		end
 
 		def dup
@@ -48,13 +63,13 @@ module Sudoku
 
 		BoxOfIndex = [0,0,0,1,1,1,2,2,2,0,0,0,1,1,1,2,2,2,0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,3,3,3,4,4,4,5,5,5,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,6,6,6,7,7,7,8,8,8,6,6,6,7,7,7,8,8,8].freeze #this is the gameboard, it is frozen so it can't be modified, and since the first letter of the name is capitol it is a constant
 
-		def each_unknown#loop through the grid and if we don't know the value already for the cell, then figure it out
-			0.upto 8 do |row|
-				0.upto 8 do |col|
-					index = row*9+col
-					next if @grid[index] != 0
-					box = BoxOfIndex[index]
-					yield row, col, box
+		def each_unknown
+			0.upto 8 do |row|  #for each row
+				0.upto 8 do |col|   #for each column
+					index = row*9+col   #get the index
+					next if @grid[index] != "."   #move on if it is known
+					box = BoxOfIndex[index]   #otherwise get the box
+					yield row, col, box   #then return the spot the number is in
 				end
 			end
 		end
@@ -159,5 +174,5 @@ module Sudoku
 		#if we get this far, we messed up somewhere
 		raise Impossible
 	end
-
+	puts Sudoku.solve(Puzzle.new(".3..52...2..7..63..9...3.1.3458.9....7..1..8....3.4795.6.2...5..83..6..4...14..6."))
 end
