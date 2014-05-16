@@ -174,5 +174,8 @@ module Sudoku
 		#if we get this far, we messed up somewhere
 		raise Impossible
 	end
+	puts "Input filename or classpath:"
+	input_file = File.open(gets)
+	
 	puts Sudoku.solve(Puzzle.new(".3..52...2..7..63..9...3.1.3458.9....7..1..8....3.4795.6.2...5..83..6..4...14..6."))
 end
