@@ -29,7 +29,9 @@ module Sudoku
 				@grid.push(c)
 			end
 			#If the has_duplicates? method worked, this would not be commented
-			#raise Invalid, "Initial puzzle has duplicates" if has_duplicates?
+			if has_duplicates?
+				raise Invalid, "Initial puzzle has duplicates" 
+			end
 		end
 
 		def to_s
@@ -59,9 +61,9 @@ module Sudoku
 		def [](row,col)
 			@grid[row*9 + col]
 		end
-
+		AllDigits = ["1","2","3","4","5","6","7","8","9"].freeze
 		def []=(row,col,newvalue)
-			unless (0..9).include? newvalue
+			unless AllDigits.include? newvalue
 				raise Invalid, "illegal cell value"
 			end
 			@grid[row*9 + col] = newvalue
@@ -73,7 +75,9 @@ module Sudoku
 			0.upto 8 do |row|  #for each row
 				0.upto 8 do |col|   #for each column
 					index = row*9+col   #get the index
-					next if @grid[index] != "."   #move on if it is known
+					if @grid[index] != "."   #move on if it is known
+						next
+					end
 					box = BoxOfIndex[index]   #otherwise get the box
 					yield row, col, box   #then return the spot the number is in
 				end
@@ -81,15 +85,31 @@ module Sudoku
 		end
 
 		def has_duplicates?
-			#this method doesn't currently seem to work
-			0.upto(8) {|row| return true if rowdigits(row).uniq }
-			0.upto(8) {|col| return true if coldigits(col).uniq }
-			0.upto(8) {|box| return true if boxdigits(box).uniq }
-			false #otherwise, returns false
+			#0.upto(8) {|row| return true if rowdigits(row).uniq! }
+			#0.upto(8) {|col| return true if coldigits(col).uniq! }
+			#0.upto(8) {|box| return true if boxdigits(box).uniq! }
+			0.upto(8) do |row| 
+				if rowdigits(row).uniq! then
+				puts rowdigits(row)
+				return true
+				end
+			end
+			0.upto(8) do |col| 
+				if coldigits(col).uniq! then
+				puts coldigits(col)
+				return true
+				end
+			end
+			0.upto(8) do |box| 
+				if boxdigits(box).uniq! then
+				puts boxdigits(box)
+				return true
+				end
+			end
+			false
 		end
 
 		#an array of ok sudoku digits
-		AllDigits = [1,2,3,4,5,6,7,8,9].freeze
 
 		def possible(row, col, box)
 			#returns the possible digits for the cell
@@ -99,14 +119,14 @@ module Sudoku
 		private #all methods under here are private to the class
 
 		def rowdigits(row) #returns an array of the known values in the row
-			@grid[row*9,9] - [0]
+			@grid[row*9,9] - ["."]
 		end
 
 		def coldigits(col) #same thing but with columns
 			result = [] #start with empty array
 			col.step(80, 9) {|i| #loop through columns
 				v = @grid[i]  #get value of the cell
-				result << v if (v != 0)  #add it to the array if it isn't zero
+				result << v if (v != ".")  #add it to the array if it isn't zero
 			}
 			result
 		end
@@ -122,7 +142,7 @@ module Sudoku
 				@grid[i], @grid[i+1], @grid[i+2],
 				@grid[i+9], @grid[i+10], @grid[i+11],
 				@grid[i+18], @grid[i+19], @grid[i+20]
-			] - [0]
+			] - ["."]
 		end
 	end#thus, the puzzle class ends
 
@@ -134,7 +154,7 @@ module Sudoku
 	class Impossible < StandardError
 	end
 
-	#goes through the puzzle setting values until it can't set values
+	#finds the first unset cell and gets the location and an array of possible values for the array
 	def Sudoku.scan(puzzle)
 		unchanged = false #looping variable
 
@@ -144,8 +164,10 @@ module Sudoku
 			min = 10
 			puzzle.each_unknown do |row, col, box|
 				p = puzzle.possible(row,col,box)
+				puts row.to_s + " " + col.to_s + " " + p.to_s + "p"
 				case p.size
 				when 0 #no possible values, overconstrained puzzle
+					puts puzzle
 					raise Impossible
 				when 1 #only one value, it must be correct so set it in the puzzle
 					puzzle[row,col] = p[0]
@@ -158,19 +180,19 @@ module Sudoku
 				end
 			end
 		end
-		return rmin, cmin, pmin
+		return rmin, cmin, pmin #pmin is possible values, an array
 	end
 
 	#now a method that solves the puzzle
 	def Sudoku.solve(puzzle)
 		puzzle = puzzle.dup #this way we don't mess with the original
 		r,c,p = scan(puzzle)
+		puts r.to_s + " " + c.to_s + " " + p.to_s
 
 		return puzzle if r == nil
 
 		p.each do |guess| #loop through the guesses for each empty cell
 			puzzle[r,c] = guess
-
 			begin #now we try to recursively solve the modified puzzle
 				return solve(puzzle)
 			rescue Impossible
@@ -181,10 +203,12 @@ module Sudoku
 		#if we get this far, we messed up somewhere
 		raise Impossible
 	end
+	##############Ideally this section would be in its own method
 	in_file = ""
 	puts "Input filename: "
 	in_file = gets.chomp
 	file = File.new(in_file, "r")
 	nums = file.readlines.join.chomp
 	puts Sudoku.solve(Puzzle.new(nums))
+	###################
 end
