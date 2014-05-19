@@ -187,7 +187,6 @@ module Sudoku
 	def Sudoku.solve(puzzle)
 		puzzle = puzzle.dup #this way we don't mess with the original
 		r,c,p = scan(puzzle)
-		puts r.to_s + " " + c.to_s + " " + p.to_s
 
 		return puzzle if r == nil
 
@@ -203,12 +202,16 @@ module Sudoku
 		#if we get this far, we messed up somewhere
 		raise Impossible
 	end
-	##############Ideally this section would be in its own method
-	in_file = ""
-	puts "Input filename: "
-	in_file = gets.chomp
-	file = File.new(in_file, "r")
-	nums = file.readlines.join.chomp
-	puts Sudoku.solve(Puzzle.new(nums))
-	###################
+
+	def Sudoku.main
+		in_file = ""
+		puts "Input filename: "
+		in_file = gets.chomp
+		file = File.new(in_file, "r")
+		nums = file.readlines.join.chomp
+		puts Sudoku.solve(Puzzle.new(nums))
+	end
+	
+	Sudoku.main
+	
 end
