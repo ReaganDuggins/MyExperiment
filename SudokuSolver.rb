@@ -6,9 +6,6 @@ module Sudoku
 
 	class Puzzle
 
-		ASCII = ".123456789"
-		BIN = "/000/001/002/003/004/005/006/007/010/011"
-
 		def initialize(lines)
 			#The if else initializes s as a string, whether it started as a string array or just a string
 			if lines.respond_to? :join #basically, if it has a join method, it is probably an array
@@ -28,7 +25,6 @@ module Sudoku
 			s.each_char do |c|
 				@grid.push(c)
 			end
-			#If the has_duplicates? method worked, this would not be commented
 			if has_duplicates?
 				raise Invalid, "Initial puzzle has duplicates" 
 			end
@@ -90,19 +86,16 @@ module Sudoku
 			#0.upto(8) {|box| return true if boxdigits(box).uniq! }
 			0.upto(8) do |row| 
 				if rowdigits(row).uniq! then
-				puts rowdigits(row)
 				return true
 				end
 			end
 			0.upto(8) do |col| 
 				if coldigits(col).uniq! then
-				puts coldigits(col)
 				return true
 				end
 			end
 			0.upto(8) do |box| 
 				if boxdigits(box).uniq! then
-				puts boxdigits(box)
 				return true
 				end
 			end
@@ -164,10 +157,10 @@ module Sudoku
 			min = 10
 			puzzle.each_unknown do |row, col, box|
 				p = puzzle.possible(row,col,box)
-				puts row.to_s + " " + col.to_s + " " + p.to_s + "p"
+				#puts row.to_s + " " + col.to_s + " " + p.to_s + "p" good line for troubleshooting
 				case p.size
 				when 0 #no possible values, overconstrained puzzle
-					puts puzzle
+					#puts puzzle
 					raise Impossible
 				when 1 #only one value, it must be correct so set it in the puzzle
 					puzzle[row,col] = p[0]
