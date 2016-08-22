@@ -1,3 +1,5 @@
+###This is mostly not my program. I have tweaked it a bit, but I cannot take the credit. And unfortunately I do not know where it originally came from
+### so if you happen to know which book this program is from, please let me know so I can give them the credit.
 #This program reads a sudoku board from a file inputted upon running the program, and solves the puzzle.
 #The input file needs to contain 81 digits, known values are digits between 1 and 9 inclusive, and unknown values are represented by . Whitespace is
 #trimmed automatically
